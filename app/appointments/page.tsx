@@ -1,147 +1,230 @@
-"use client";
+﻿"use client";
 
-import React, { useEffect, useState } from "react";
-import { rawAppointmentList, customerList } from "./data";
+import { customerList } from "./data";
 import {
-  getTotalAppointments,
-  getCustomerNote,
+  getAppointmentStatusLabel,
   getCustomerLabel,
+  getCustomerNote,
+  getTotalAppointments,
 } from "./helpers";
-import type { Appointment, AppointmentDTO, Customer } from "./type";
-import ActionButton from "./components/ui/ActionButton";
-import Title from "./components/ui/Title";
-import Input from "./components/ui/Input";
+import { groupBy, mapToOptions, toRecord } from "./generic";
+import type { Appointment, Customer } from "./type";
 import AppointmentDetailModal from "./components/appointments/AppointmentDetailModal";
-import { firstItem } from "./generic";
-import AppointmentTable from "./components/appointments/AppointmentTable";
-import { getAppointments } from "./api";
-import { mapAppointmentDTOToAppointment } from "./mapper";
-import CreateAppointmentModal from "./components/appointments/CreateAppointmentModal";
 import AppointmentFilterFormValues from "./components/appointments/AppointmentFilterFormValues";
+import AppointmentTable from "./components/appointments/AppointmentTable";
+import CreateAppointmentModal from "./components/appointments/CreateAppointmentModal";
+import ActionButton from "./components/ui/ActionButton";
+import ActionBar from "./components/ui/ActionBar";
+import Card from "./components/ui/Card";
+import EmptyState from "./components/ui/EmptyState";
+import Section from "./components/ui/Section";
 import { useAppointment } from "./hooks/useAppointment";
 import { useModal } from "./hooks/useModal";
 import { useAppointmentState } from "./hooks/useAppointmentState";
 
-const Appointment = () => {
-  // const [isOpenModalCreate, setIsOpenModalCreate] = useState(false);
-  // const [isOpenModalDetail, setIsOpenModalDetail] = useState(false);
-
+const AppointmentPage = () => {
   const createModal = useModal(false);
   const detailModal = useModal(false);
 
   const { fetchState } = useAppointment();
-  // const [loading, setLoading] = useState(false);
-  // const [appointmentList, setAppointmentList] = useState<Appointment[]>([]);
+  const appointmentList =
+    fetchState.status === "success" ? (fetchState.data as Appointment[]) : [];
+  const customerRecord = toRecord(customerList);
+  const customerOptions = mapToOptions(
+    customerList,
+    getCustomerLabel,
+    (customer) => customer.id,
+  );
+  const appointmentListWithCustomerLabel = appointmentList.map((appointment) => ({
+    ...appointment,
+    customerName:
+      customerRecord[appointment.customerName]?.name ?? appointment.customerName,
+  }));
+  const appointmentsByStatus = groupBy(
+    appointmentListWithCustomerLabel,
+    (appointment) => appointment.status,
+  );
+  const appointmentStatusEntries = Object.entries(appointmentsByStatus) as Array<
+    [Appointment["status"], Appointment[]]
+  >;
+  const totalAppointments = getTotalAppointments(appointmentListWithCustomerLabel);
 
-  // useEffect(() => {
-  //   const loadAppointments = async (): Promise<void> => {
-  //     console.log("Loading appointments...");
-  //     setLoading(true);
-  //     try {
-  //       const appointments = await getAppointments();
-  //       const appointmentData = appointments.data as AppointmentDTO[]; // tư duy biết trước DTO nên ép nó như này thay vì unknow đc không?
-  //       const appointmentList = appointmentData.map(
-  //         mapAppointmentDTOToAppointment,
-  //       );
-  //       setAppointmentList(appointmentList);
-  //     } catch (error) {
-  //       console.error("Error loading appointments:", error);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-  //   loadAppointments();
-  // }, []);
   const {
     selectedAppointment,
     handleGetFirstAppointment,
     handleSelectedAppointment,
     handleClearAppointment,
-  } = useAppointmentState({
-    appointmentList:
-      fetchState.status === "success" ? (fetchState.data as Appointment[]) : [],
-  });
-  const appointmentList =
-    fetchState.status === "success" ? (fetchState.data as Appointment[]) : [];
+  } = useAppointmentState({ appointmentList: appointmentListWithCustomerLabel });
 
-  const renderAppointmentTable = () => {
+  const handleOpenAppointmentDetail = (item: Appointment) => {
+    handleSelectedAppointment(item);
+    detailModal.open();
+  };
+
+  const handleCloseAppointmentDetail = () => {
+    detailModal.close();
+    handleClearAppointment();
+  };
+
+  const handlePreviewFirstAppointment = () => {
+    handleGetFirstAppointment();
+    detailModal.open();
+  };
+
+  const renderAppointmentContent = () => {
     switch (fetchState.status) {
       case "idle":
-        return <p>Idle...</p>;
+        return (
+          <EmptyState
+            title="No request yet"
+            description="Start by loading appointments or creating the first one for this workspace."
+          />
+        );
       case "loading":
-        return <p>Loading...</p>;
+        return (
+          <EmptyState
+            title="Loading appointments"
+            description="The appointment board is preparing the latest data for you."
+          />
+        );
       case "success":
+        if (appointmentListWithCustomerLabel.length === 0) {
+          return (
+            <EmptyState
+              title="No appointments found"
+              description="Try another filter or create a new appointment to populate the board."
+              action={
+                <ActionButton
+                  label="Create appointment"
+                  onClick={createModal.open}
+                />
+              }
+            />
+          );
+        }
+
         return (
           <AppointmentTable
-            items={appointmentList}
-            onSelect={handleSelectedAppointment}
+            items={appointmentListWithCustomerLabel}
+            onSelect={handleOpenAppointmentDetail}
             onDelete={handleClearAppointment}
           />
         );
       case "error":
-        return <p>Error: {fetchState.message}</p>;
+        return (
+          <EmptyState
+            title="Unable to load appointments"
+            description={fetchState.message}
+          />
+        );
       default:
         return null;
     }
   };
 
   return (
-    <main>
-      <section>
-        <div>
-          <Title title="Danh sách cuộc hẹn" />
-          <p>Tổng số cuộc hẹn: {getTotalAppointments(appointmentList)}</p>
-        </div>
-        <div>
-          <AppointmentFilterFormValues
-            onSubmit={(data) => {
-              // Handle filter submission logic here
-            }}
-          />
-          <ActionButton
-            label="Tạo mới Appointment"
-            // onClick={handleCreateModal}
-            onClick={createModal.open}
-          />
-          <ActionButton label="Tắt Appointment" onClick={createModal.close} />
-          <ActionButton
-            label="Lấy phần tử đầu tiên"
-            // onClick={() => setSelectedAppointment(firstItem(appointmentList))}
-            onClick={handleGetFirstAppointment}
-          />
-          {renderAppointmentTable()}
-        </div>
-        <hr />
-      </section>
-      <section>
-        <div>
-          <h2>khách hàng</h2>
-          <ul>
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top,_#f8fafc_0%,_#edf7f2_45%,_#f8fafc_100%)] px-4 py-8 text-slate-900 sm:px-6 lg:px-8">
+      <div className="mx-auto flex max-w-7xl flex-col gap-6">
+        <Section
+          eyebrow="Appointments"
+          title="Appointment workspace"
+          description="Track bookings, keep quick actions nearby and work with a calmer dashboard-style layout."
+          actions={
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <Card padding="sm" className="bg-slate-950 text-white">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">
+                  Total
+                </p>
+                <p className="mt-2 text-2xl font-semibold">{totalAppointments}</p>
+              </Card>
+              {appointmentStatusEntries.map(([status, items]) => (
+                <Card key={status} padding="sm" className="bg-slate-50">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+                    {getAppointmentStatusLabel(status)}
+                  </p>
+                  <p className="mt-2 text-2xl font-semibold text-slate-950">
+                    {items.length}
+                  </p>
+                </Card>
+              ))}
+            </div>
+          }
+        >
+          <div className="space-y-5">
+            <ActionBar
+              actions={
+                <>
+                  <ActionButton
+                    label="Create appointment"
+                    onClick={createModal.open}
+                  />
+                  <ActionButton
+                    label="Close creator"
+                    onClick={createModal.close}
+                    disabled={!createModal.isOpen}
+                    variant="secondary"
+                  />
+                  <ActionButton
+                    label="Preview first"
+                    onClick={handlePreviewFirstAppointment}
+                    variant="ghost"
+                  />
+                </>
+              }
+            >
+              <AppointmentFilterFormValues
+                onSubmit={() => {
+                  // Handle filter submission logic here
+                }}
+              />
+            </ActionBar>
+            {renderAppointmentContent()}
+          </div>
+        </Section>
+        <Section
+          eyebrow="Customers"
+          title="Customer directory"
+          description="Quick reference for phones, notes and VIP status linked to your appointment board."
+        >
+          <ul className="grid gap-4 lg:grid-cols-2">
             {customerList.map((customer: Customer) => {
-              const { id, phone } = customer;
+              const { id, phone, isVip } = customer;
               return (
                 <li key={id}>
-                  <h3>{getCustomerLabel(customer)}</h3>
-                  <p>{phone}</p>
-                  <p>{getCustomerNote(customer)}</p>
+                  <Card padding="sm" className="h-full bg-slate-50/80">
+                    <div className="space-y-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <h3 className="text-lg font-semibold text-slate-950">
+                            {getCustomerLabel(customer)}
+                          </h3>
+                          <p className="mt-1 text-sm text-slate-500">{phone}</p>
+                        </div>
+                        <span className="inline-flex rounded-full bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-slate-600 shadow-sm">
+                          {isVip ? "VIP" : "Standard"}
+                        </span>
+                      </div>
+                      <p className="text-sm leading-6 text-slate-600">
+                        {getCustomerNote(customer)}
+                      </p>
+                    </div>
+                  </Card>
                 </li>
               );
             })}
           </ul>
-        </div>
-        <hr />
-      </section>
+        </Section>
+      </div>
       <AppointmentDetailModal
-        // isOpen={isOpenModalDetail}
-        // onClose={() => setIsOpenModalDetail(false)}
         isOpen={detailModal.isOpen}
-        onClose={detailModal.close}
+        onClose={handleCloseAppointmentDetail}
         appointment={selectedAppointment}
       />
-      {/* {isOpenModalCreate && ( */}
       {createModal.isOpen && (
         <CreateAppointmentModal
-          onSubmit={(data) => {
+          customerOptions={customerOptions}
+          onClose={createModal.close}
+          onSubmit={() => {
             // Handle form submission logic here
           }}
         />
@@ -150,4 +233,4 @@ const Appointment = () => {
   );
 };
 
-export default Appointment;
+export default AppointmentPage;

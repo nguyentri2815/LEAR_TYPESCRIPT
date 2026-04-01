@@ -1,4 +1,4 @@
-import { ApiType, Appointment, AppointmentDTO } from "./type";
+import { ApiType, AppointmentDTO } from "./type";
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 export const getAppointments = async (): Promise<ApiType<AppointmentDTO[]>> => {

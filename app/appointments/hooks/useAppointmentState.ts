@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useAppointment } from "./useAppointment";
 import { Appointment } from "../type";
+import { findItemById, firstItem } from "../generic";
 
 export const useAppointmentState = ({
   appointmentList,
