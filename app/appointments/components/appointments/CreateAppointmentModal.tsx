@@ -1,17 +1,23 @@
 import React from "react";
-import { CreateAppointmentFormValues } from "../../type";
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+
 import TextField from "../fields/TextField";
+import TextareaField from "../fields/TextareaField";
+import SelectField from "../fields/SelectField";
+
 import Card from "../ui/Card";
+import { createAppointmentSchema, CreateAppointmentSchemaValues } from "../../schema";
 
 interface CreateAppointmentModalProps {
   customerOptions: { value: string; label: string }[];
-  onSubmit: (data: CreateAppointmentFormValues) => void;
+  onSubmit: (data: CreateAppointmentSchemaValues) => void;
   onClose: () => void;
 }
 
 const CreateAppointmentModal = (props: CreateAppointmentModalProps) => {
-  const methods = useForm<CreateAppointmentFormValues>({
+  const methods = useForm<CreateAppointmentSchemaValues>({
+    resolver: zodResolver(createAppointmentSchema),
     defaultValues: {
       title: "",
       customerName: "",
@@ -19,8 +25,12 @@ const CreateAppointmentModal = (props: CreateAppointmentModalProps) => {
       note: "",
     },
   });
-  const { register, handleSubmit } = methods;
-  const onSubmit = (data: CreateAppointmentFormValues) => {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = methods;
+  const onSubmit = (data: CreateAppointmentSchemaValues) => {
     console.log("Form data:", data);
     props.onSubmit(data);
   };
@@ -49,33 +59,35 @@ const CreateAppointmentModal = (props: CreateAppointmentModalProps) => {
             </button>
           </div>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <TextField label="Title" name="title" register={register} />
+            <TextField
+              label="Title"
+              name="title"
+              register={register}
+              error={errors.title?.message}
+            />
             <div>
-              <span className="mb-2 block text-sm font-medium text-slate-700">
-                Customer
-              </span>
-              <select
-                title="customerName"
-                {...register("customerName")}
-                className="h-11 w-full rounded-2xl border border-slate-300 bg-white px-4 text-sm text-slate-700 outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-100"
-              >
-                <option value="">Select customer</option>
-                {props.customerOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+              <SelectField
+                label="Customer"
+                name="customerName"
+                options={props.customerOptions}
+                register={register}
+                error={errors.customerName?.message}
+              />
             </div>
-            <TextField label="Fee" name="fee" register={register} type="number" />
+            <TextField
+              label="Fee"
+              name="fee"
+              register={register}
+              type="number"
+              error={errors.fee?.message}
+            />
             <div>
-              <span className="mb-2 block text-sm font-medium text-slate-700">
-                Note
-              </span>
-              <textarea
+              <TextareaField
+                label="Note"
+                name="note"
+                register={register}
                 placeholder="Add note"
-                {...register("note")}
-                className="min-h-28 w-full rounded-3xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-100"
+                error={errors.note?.message}
               />
             </div>
             <div className="flex flex-wrap justify-end gap-3 pt-2">

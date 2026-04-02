@@ -34,12 +34,12 @@ export type ApiType<T> = {
 }
 
 //Form values:
-export interface CreateAppointmentFormValues {
-  title: string;
-  customerName: string;
-  fee: number;
-  note?: string;
-}
+// export interface CreateAppointmentFormValues {
+//   title: string;
+//   customerName: string;
+//   fee: number;
+//   note?: string;
+// }
 export interface AppointmentFilterFormValues {
   keyword: string;
 }
