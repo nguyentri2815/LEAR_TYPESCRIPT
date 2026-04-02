@@ -18,6 +18,7 @@ interface CreateAppointmentModalProps {
 const CreateAppointmentModal = (props: CreateAppointmentModalProps) => {
   const methods = useForm<CreateAppointmentSchemaValues>({
     resolver: zodResolver(createAppointmentSchema),
+    mode: "onChange",
     defaultValues: {
       title: "",
       customerName: "",
@@ -28,7 +29,7 @@ const CreateAppointmentModal = (props: CreateAppointmentModalProps) => {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting, isDirty, isValid },
   } = methods;
   const onSubmit = (data: CreateAppointmentSchemaValues) => {
     console.log("Form data:", data);
@@ -100,9 +101,10 @@ const CreateAppointmentModal = (props: CreateAppointmentModalProps) => {
               </button>
               <button
                 type="submit"
-                className="inline-flex h-11 items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800"
+                className={`inline-flex h-11 items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800 ${(isDirty && isValid && !isSubmitting) ? "enabled:hover:bg-slate-800" : "cursor-not-allowed opacity-50"}`}
+                disabled={!isDirty || !isValid || isSubmitting}
               >
-                Create appointment
+                {isSubmitting ? "Creating..." : "Create"}
               </button>
             </div>
           </form>
