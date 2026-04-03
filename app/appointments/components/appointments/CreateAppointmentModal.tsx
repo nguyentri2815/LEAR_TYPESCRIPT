@@ -1,5 +1,5 @@
 import React from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import TextField from "../fields/TextField";
@@ -7,7 +7,11 @@ import TextareaField from "../fields/TextareaField";
 import SelectField from "../fields/SelectField";
 
 import Card from "../ui/Card";
-import { createAppointmentSchema, CreateAppointmentSchemaValues } from "../../schema";
+import {
+  createAppointmentSchema,
+  CreateAppointmentSchemaValues,
+} from "../../schema";
+import StatusSelectField from "../fields/StatusSelectField";
 
 interface CreateAppointmentModalProps {
   customerOptions: { value: string; label: string }[];
@@ -75,6 +79,20 @@ const CreateAppointmentModal = (props: CreateAppointmentModalProps) => {
                 error={errors.customerName?.message}
               />
             </div>
+            <Controller
+              name="status"
+              control={methods.control}
+              render={({ field, fieldState }) => (
+                <StatusSelectField
+                  name="status"
+                  label="Status"
+                  value={field.value}
+                  onChange={field.onChange}
+                  error={fieldState.error?.message}
+                />
+              )}
+            />
+
             <TextField
               label="Fee"
               name="fee"
@@ -101,7 +119,7 @@ const CreateAppointmentModal = (props: CreateAppointmentModalProps) => {
               </button>
               <button
                 type="submit"
-                className={`inline-flex h-11 items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800 ${(isDirty && isValid && !isSubmitting) ? "enabled:hover:bg-slate-800" : "cursor-not-allowed opacity-50"}`}
+                className={`inline-flex h-11 items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800 ${isDirty && isValid && !isSubmitting ? "enabled:hover:bg-slate-800" : "cursor-not-allowed opacity-50"}`}
                 disabled={!isDirty || !isValid || isSubmitting}
               >
                 {isSubmitting ? "Creating..." : "Create"}
