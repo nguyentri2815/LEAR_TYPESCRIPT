@@ -18,6 +18,11 @@ interface CreateAppointmentModalProps {
   onSubmit: (data: CreateAppointmentSchemaValues) => void;
   onClose: () => void;
 }
+const statusOptions: { value: string; label: string }[] = [
+  { value: "NEW", label: "New" },
+  { value: "CONFIRM", label: "Confirm" },
+  { value: "CANCELLED", label: "Cancelled" },
+];
 
 const CreateAppointmentModal = (props: CreateAppointmentModalProps) => {
   const methods = useForm<CreateAppointmentSchemaValues>({
@@ -39,6 +44,7 @@ const CreateAppointmentModal = (props: CreateAppointmentModalProps) => {
     console.log("Form data:", data);
     props.onSubmit(data);
   };
+
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-sm">
       <Card className="w-full max-w-xl" padding="lg">
@@ -84,9 +90,9 @@ const CreateAppointmentModal = (props: CreateAppointmentModalProps) => {
               control={methods.control}
               render={({ field, fieldState }) => (
                 <StatusSelectField
-                  name="status"
                   label="Status"
                   value={field.value}
+                  options={statusOptions}
                   onChange={field.onChange}
                   error={fieldState.error?.message}
                 />
