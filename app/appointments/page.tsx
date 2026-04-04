@@ -30,8 +30,9 @@ const AppointmentPage = () => {
   // const { fetchState } = useAppointment();
   const appointmentsQuery = useAppointmentsQuery();
 
-  const appointmentList =
-    appointmentsQuery.isSuccess ? (appointmentsQuery.data as Appointment[]) : [];
+  const appointmentList = appointmentsQuery.isSuccess
+    ? (appointmentsQuery.data as Appointment[])
+    : [];
 
   const customerRecord = toRecord(customerList);
   const customerOptions = mapToOptions(
@@ -39,26 +40,33 @@ const AppointmentPage = () => {
     getCustomerLabel,
     (customer) => customer.id,
   );
-  const appointmentListWithCustomerLabel = appointmentList.map((appointment) => ({
-    ...appointment,
-    customerName:
-      customerRecord[appointment.customerName]?.name ?? appointment.customerName,
-  }));
+  const appointmentListWithCustomerLabel = appointmentList.map(
+    (appointment) => ({
+      ...appointment,
+      customerName:
+        customerRecord[appointment.customerName]?.name ??
+        appointment.customerName,
+    }),
+  );
   const appointmentsByStatus = groupBy(
     appointmentListWithCustomerLabel,
     (appointment) => appointment.status,
   );
-  const appointmentStatusEntries = Object.entries(appointmentsByStatus) as Array<
-    [Appointment["status"], Appointment[]]
-  >;
-  const totalAppointments = getTotalAppointments(appointmentListWithCustomerLabel);
+  const appointmentStatusEntries = Object.entries(
+    appointmentsByStatus,
+  ) as Array<[Appointment["status"], Appointment[]]>;
+  const totalAppointments = getTotalAppointments(
+    appointmentListWithCustomerLabel,
+  );
 
   const {
     selectedAppointment,
     handleGetFirstAppointment,
     handleSelectedAppointment,
     handleClearAppointment,
-  } = useAppointmentState({ appointmentList: appointmentListWithCustomerLabel });
+  } = useAppointmentState({
+    appointmentList: appointmentListWithCustomerLabel,
+  });
 
   const handleOpenAppointmentDetail = (item: Appointment) => {
     handleSelectedAppointment(item);
@@ -139,7 +147,9 @@ const AppointmentPage = () => {
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">
                   Total
                 </p>
-                <p className="mt-2 text-2xl font-semibold">{totalAppointments}</p>
+                <p className="mt-2 text-2xl font-semibold">
+                  {totalAppointments}
+                </p>
               </Card>
               {appointmentStatusEntries.map(([status, items]) => (
                 <Card key={status} padding="sm" className="bg-slate-50">
@@ -171,6 +181,11 @@ const AppointmentPage = () => {
                   <ActionButton
                     label="Preview first"
                     onClick={handlePreviewFirstAppointment}
+                    variant="ghost"
+                  />
+                  <ActionButton
+                    label="refresh"
+                    onClick={() => appointmentsQuery.refetch()}
                     variant="ghost"
                   />
                 </>

@@ -15,6 +15,8 @@ export const useAppointmentsQuery = () => {
       );
       return appointmentList;
     },
+    staleTime:30*1000,
+    retry:1,
   });
   return appointmentQuery;
 };
