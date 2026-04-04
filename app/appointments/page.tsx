@@ -22,7 +22,7 @@ import { useAppointment } from "./hooks/useAppointment";
 import { useModal } from "./hooks/useModal";
 import { useAppointmentState } from "./hooks/useAppointmentState";
 import { useAppointmentsQuery } from "./hooks/useAppointmentQuery";
-import { useCreateAppointmentMutation } from "./hooks/useAppointmentMudation";
+import { useCreateAppointmentMutation, useDeleteAppointmentMutation } from "./hooks/useAppointmentMudation";
 
 const AppointmentPage = () => {
   const createModal = useModal(false);
@@ -31,6 +31,7 @@ const AppointmentPage = () => {
   // const { fetchState } = useAppointment();
   const appointmentsQuery = useAppointmentsQuery();
   const createAppointmentMutation = useCreateAppointmentMutation();
+  const deleteAppointmentMutation = useDeleteAppointmentMutation();
 
   const appointmentList = appointmentsQuery.isSuccess
     ? (appointmentsQuery.data as Appointment[])
@@ -121,7 +122,12 @@ const AppointmentPage = () => {
           <AppointmentTable
             items={appointmentListWithCustomerLabel}
             onSelect={handleOpenAppointmentDetail}
-            onDelete={handleClearAppointment}
+            onDelete={async(item:Appointment):Promise<void> => {
+              //handle onSuccess service state riêng bên trong hook mutation
+              await deleteAppointmentMutation.mutateAsync(item.id);
+              //handle local state riêng tại ui component//....
+              handleClearAppointment()
+            }}
           />
         );
       case "error":

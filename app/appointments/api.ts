@@ -35,3 +35,13 @@ export const createAppointment = async (
     message: "success",
   };
 };
+
+export const deleteAppointment = async (
+  appointmentId: string,
+): Promise<ApiType<string>> => {
+  await wait(3000);
+  return {
+    data: appointmentId,
+    message: "xóa appointment thành công",
+  };
+};
