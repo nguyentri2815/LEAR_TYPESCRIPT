@@ -25,3 +25,13 @@ export const getAppointments = async (): Promise<ApiType<AppointmentDTO[]>> => {
     message: "Appointments fetched successfully",
   };
 };
+
+export const createAppointment = async (
+  payload: AppointmentDTO,
+): Promise<ApiType<AppointmentDTO>> => {
+  await wait(3000);
+  return {
+    data: payload,
+    message: "success",
+  };
+};

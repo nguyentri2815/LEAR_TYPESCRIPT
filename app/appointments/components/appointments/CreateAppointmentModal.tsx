@@ -17,6 +17,8 @@ interface CreateAppointmentModalProps {
   customerOptions: { value: string; label: string }[];
   onSubmit: (data: CreateAppointmentSchemaValues) => void;
   onClose: () => void;
+  isSubmitting?: boolean;
+  submitErrMessage?: string;
 }
 const statusOptions: { value: string; label: string }[] = [
   { value: "NEW", label: "New" },
@@ -60,6 +62,12 @@ const CreateAppointmentModal = (props: CreateAppointmentModalProps) => {
               <p className="text-sm leading-6 text-slate-600">
                 Fill in the main information to create a new appointment.
               </p>
+              <div>
+                <p className="text-red-500 ">{props.submitErrMessage}</p>
+                <p className="text-green-400">
+                  {props.isSubmitting ? "Đang tạo...." : ""}
+                </p>
+              </div>
             </div>
             <button
               type="button"
@@ -125,8 +133,8 @@ const CreateAppointmentModal = (props: CreateAppointmentModalProps) => {
               </button>
               <button
                 type="submit"
-                className={`inline-flex h-11 items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800 ${isDirty && isValid && !isSubmitting ? "enabled:hover:bg-slate-800" : "cursor-not-allowed opacity-50"}`}
-                disabled={!isDirty || !isValid || isSubmitting}
+                className={`inline-flex h-11 items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800 ${isDirty && isValid && !isSubmitting || props.isSubmitting? "enabled:hover:bg-slate-800" : "cursor-not-allowed opacity-50"}`}
+                disabled={!isDirty || !isValid || isSubmitting || props.isSubmitting}
               >
                 {isSubmitting ? "Creating..." : "Create"}
               </button>

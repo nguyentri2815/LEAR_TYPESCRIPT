@@ -22,6 +22,7 @@ import { useAppointment } from "./hooks/useAppointment";
 import { useModal } from "./hooks/useModal";
 import { useAppointmentState } from "./hooks/useAppointmentState";
 import { useAppointmentsQuery } from "./hooks/useAppointmentQuery";
+import { useCreateAppointmentMutation } from "./hooks/useAppointmentMudation";
 
 const AppointmentPage = () => {
   const createModal = useModal(false);
@@ -29,6 +30,7 @@ const AppointmentPage = () => {
 
   // const { fetchState } = useAppointment();
   const appointmentsQuery = useAppointmentsQuery();
+  const createAppointmentMutation = useCreateAppointmentMutation();
 
   const appointmentList = appointmentsQuery.isSuccess
     ? (appointmentsQuery.data as Appointment[])
@@ -243,9 +245,15 @@ const AppointmentPage = () => {
         <CreateAppointmentModal
           customerOptions={customerOptions}
           onClose={createModal.close}
-          onSubmit={() => {
+          onSubmit={async (formValues) => {
             // Handle form submission logic here
+            await createAppointmentMutation.mutateAsync(formValues);
+            createModal.close();
           }}
+          isSubmitting={createAppointmentMutation.isPending}
+          submitErrMessage={
+            createAppointmentMutation.isError ? "Tạo mới thất bại" : ""
+          }
         />
       )}
     </main>
