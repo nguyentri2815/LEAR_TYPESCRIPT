@@ -1,16 +1,16 @@
 import { CreateAppointmentSchemaValues } from "./schema";
-import { AppointmentDTO } from "./type";
+import { CreateAppointmentPayload } from "./type";
 
 export const buildAppointmentCreateFromFormValues = (
   formValues: CreateAppointmentSchemaValues,
-): AppointmentDTO => {
+): CreateAppointmentPayload => {
   const { customerName, fee, status, title, note } = formValues;
+
   return {
-    id: "",
-    title: title,
+    title,
     customer_Name: customerName,
-    fee: fee,
-    note: note,
-    status: status,
+    fee,
+    note: note || undefined,
+    status,
   };
 };

@@ -12,30 +12,30 @@ import type { Appointment, Customer } from "./type";
 import AppointmentDetailModal from "./components/appointments/AppointmentDetailModal";
 import AppointmentFilterFormValues from "./components/appointments/AppointmentFilterFormValues";
 import AppointmentTable from "./components/appointments/AppointmentTable";
-import CreateAppointmentModal from "./components/appointments/CreateAppointmentModal";
+import CreateAppointmentModal from "./components/appointments/CreateAppointmentModalV2";
 import ActionButton from "./components/ui/ActionButton";
 import ActionBar from "./components/ui/ActionBar";
 import Card from "./components/ui/Card";
 import EmptyState from "./components/ui/EmptyState";
 import Section from "./components/ui/Section";
-import { useAppointment } from "./hooks/useAppointment";
 import { useModal } from "./hooks/useModal";
 import { useAppointmentState } from "./hooks/useAppointmentState";
-import { useAppointmentsQuery } from "./hooks/useAppointmentQuery";
-import { useCreateAppointmentMutation, useDeleteAppointmentMutation } from "./hooks/useAppointmentMudation";
+import { useAppointmentsQuery } from "./hooks/useAppointmentsDataQuery";
+import {
+  useCreateAppointmentMutation,
+  useDeleteAppointmentMutation,
+} from "./hooks/useAppointmentMudation";
+import { CreateAppointmentSchemaValues } from "./schema";
 
 const AppointmentPage = () => {
   const createModal = useModal(false);
   const detailModal = useModal(false);
 
-  // const { fetchState } = useAppointment();
   const appointmentsQuery = useAppointmentsQuery();
   const createAppointmentMutation = useCreateAppointmentMutation();
   const deleteAppointmentMutation = useDeleteAppointmentMutation();
 
-  const appointmentList = appointmentsQuery.isSuccess
-    ? (appointmentsQuery.data as Appointment[])
-    : [];
+  const appointmentList = appointmentsQuery.data ?? [];
 
   const customerRecord = toRecord(customerList);
   const customerOptions = mapToOptions(
@@ -81,6 +81,27 @@ const AppointmentPage = () => {
     handleClearAppointment();
   };
 
+  const handleOpenCreateAppointment = () => {
+    createAppointmentMutation.reset();
+    createModal.open();
+  };
+
+  const handleCloseCreateAppointment = () => {
+    if (createAppointmentMutation.isPending) {
+      return;
+    }
+
+    createAppointmentMutation.reset();
+    createModal.close();
+  };
+
+  const handleCreateAppointment = async (
+    formValues: CreateAppointmentSchemaValues,
+  ) => {
+    await createAppointmentMutation.mutateAsync(formValues);
+    handleCloseCreateAppointment();
+  };
+
   const handlePreviewFirstAppointment = () => {
     handleGetFirstAppointment();
     detailModal.open();
@@ -111,7 +132,7 @@ const AppointmentPage = () => {
               action={
                 <ActionButton
                   label="Create appointment"
-                  onClick={createModal.open}
+                  onClick={handleOpenCreateAppointment}
                 />
               }
             />
@@ -178,12 +199,14 @@ const AppointmentPage = () => {
                 <>
                   <ActionButton
                     label="Create appointment"
-                    onClick={createModal.open}
+                    onClick={handleOpenCreateAppointment}
                   />
                   <ActionButton
                     label="Close creator"
-                    onClick={createModal.close}
-                    disabled={!createModal.isOpen}
+                    onClick={handleCloseCreateAppointment}
+                    disabled={
+                      !createModal.isOpen || createAppointmentMutation.isPending
+                    }
                     variant="secondary"
                   />
                   <ActionButton
@@ -250,12 +273,8 @@ const AppointmentPage = () => {
       {createModal.isOpen && (
         <CreateAppointmentModal
           customerOptions={customerOptions}
-          onClose={createModal.close}
-          onSubmit={async (formValues) => {
-            // Handle form submission logic here
-            await createAppointmentMutation.mutateAsync(formValues);
-            createModal.close();
-          }}
+          onClose={handleCloseCreateAppointment}
+          onSubmit={handleCreateAppointment}
           isSubmitting={createAppointmentMutation.isPending}
           submitErrMessage={
             createAppointmentMutation.isError ? "Tạo mới thất bại" : ""
