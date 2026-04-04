@@ -21,14 +21,18 @@ import Section from "./components/ui/Section";
 import { useAppointment } from "./hooks/useAppointment";
 import { useModal } from "./hooks/useModal";
 import { useAppointmentState } from "./hooks/useAppointmentState";
+import { useAppointmentsQuery } from "./hooks/useAppointmentQuery";
 
 const AppointmentPage = () => {
   const createModal = useModal(false);
   const detailModal = useModal(false);
 
-  const { fetchState } = useAppointment();
+  // const { fetchState } = useAppointment();
+  const appointmentsQuery = useAppointmentsQuery();
+
   const appointmentList =
-    fetchState.status === "success" ? (fetchState.data as Appointment[]) : [];
+    appointmentsQuery.isSuccess ? (appointmentsQuery.data as Appointment[]) : [];
+
   const customerRecord = toRecord(customerList);
   const customerOptions = mapToOptions(
     customerList,
@@ -72,15 +76,15 @@ const AppointmentPage = () => {
   };
 
   const renderAppointmentContent = () => {
-    switch (fetchState.status) {
-      case "idle":
-        return (
-          <EmptyState
-            title="No request yet"
-            description="Start by loading appointments or creating the first one for this workspace."
-          />
-        );
-      case "loading":
+    switch (appointmentsQuery.status) {
+      // case "idle":
+      //   return (
+      //     <EmptyState
+      //       title="No request yet"
+      //       description="Start by loading appointments or creating the first one for this workspace."
+      //     />
+      //   );
+      case "pending":
         return (
           <EmptyState
             title="Loading appointments"
@@ -114,7 +118,7 @@ const AppointmentPage = () => {
         return (
           <EmptyState
             title="Unable to load appointments"
-            description={fetchState.message}
+            description={appointmentsQuery.error.message}
           />
         );
       default:
