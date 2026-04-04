@@ -23,7 +23,7 @@ export interface AppointmentDTO extends BaseEntity {
   status: AppointmentStatus;
 }
 
-export interface CreateAppointmentPayload {
+export interface CreateAppointmentPayload {//CreateAppointmentRequest
   title: string;
   customer_Name: string;
   fee: number;
@@ -47,3 +47,11 @@ export type ApiType<T> = {
 export interface AppointmentFilterFormValues {
   keyword: string;
 }
+
+export interface UpdateAppointmentFormValues  {
+  title: string;
+  customerName: string;
+  fee: number;
+  status: AppointmentStatus;
+  note: string;
+};

@@ -9,3 +9,7 @@ export const createAppointmentSchema = z.object({
 });
 
 export type CreateAppointmentSchemaValues = z.infer<typeof createAppointmentSchema>;
+
+export const editAppointmentSchema = createAppointmentSchema;
+
+export type EditAppointmentSchemaFormValues = z.infer<typeof editAppointmentSchema>;

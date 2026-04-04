@@ -4,11 +4,12 @@ import { Appointment } from "../../type";
 interface AppointmentTableProps {
   items: Appointment[];
   onSelect: (item: Appointment) => void;
+  onEdit: (item: Appointment) => void;
   onDelete: (item: Appointment) => void;
 }
 
 const AppointmentTable = (props: AppointmentTableProps) => {
-  const { items, onSelect, onDelete } = props;
+  const { items, onSelect, onEdit, onDelete } = props;
 
   return (
     <div className="overflow-hidden rounded-[24px] border border-slate-200">
@@ -29,7 +30,9 @@ const AppointmentTable = (props: AppointmentTableProps) => {
                 </p>
                 <p className="font-semibold text-slate-950">{item.title}</p>
                 {item.note && (
-                  <p className="text-sm leading-6 text-slate-500">{item.note}</p>
+                  <p className="text-sm leading-6 text-slate-500">
+                    {item.note}
+                  </p>
                 )}
               </div>
               <div className="space-y-1">
@@ -62,6 +65,12 @@ const AppointmentTable = (props: AppointmentTableProps) => {
                   className="inline-flex h-10 items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800"
                 >
                   View
+                </button>
+                <button
+                  onClick={() => onEdit(item)}
+                  className="inline-flex h-10 items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800"
+                >
+                  Edit
                 </button>
                 <button
                   onClick={() => onDelete(item)}

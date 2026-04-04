@@ -26,10 +26,15 @@ import {
   useDeleteAppointmentMutation,
 } from "./hooks/useAppointmentMudation";
 import { CreateAppointmentSchemaValues } from "./schema";
+import { useState } from "react";
+import EditAppointmentModal from "./components/appointments/EditAppointmentModal";
 
 const AppointmentPage = () => {
   const createModal = useModal(false);
   const detailModal = useModal(false);
+  const editModal = useModal(false);
+
+  const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null)
 
   const appointmentsQuery = useAppointmentsQuery();
   const createAppointmentMutation = useCreateAppointmentMutation();
@@ -107,6 +112,21 @@ const AppointmentPage = () => {
     detailModal.open();
   };
 
+  
+  const handleOpenEditAppointment = (appointment:Appointment) => {
+    console.log('appointment',appointment)
+    setEditingAppointment(appointment);
+    editModal.open()
+  }
+
+  const handleCloseEditAppointment = () =>{
+    setEditingAppointment(null);
+    editModal.close()
+  }
+  const handleUpdateAppointment = async()=>{
+    handleCloseEditAppointment()
+  }
+
   const renderAppointmentContent = () => {
     switch (appointmentsQuery.status) {
       // case "idle":
@@ -143,6 +163,7 @@ const AppointmentPage = () => {
           <AppointmentTable
             items={appointmentListWithCustomerLabel}
             onSelect={handleOpenAppointmentDetail}
+            onEdit={handleOpenEditAppointment}
             onDelete={async(item:Appointment):Promise<void> => {
               //handle onSuccess service state riêng bên trong hook mutation
               await deleteAppointmentMutation.mutateAsync(item.id);
@@ -281,6 +302,20 @@ const AppointmentPage = () => {
           }
         />
       )}
+      {
+        editModal.isOpen && (
+          <EditAppointmentModal
+            appointment = {editingAppointment}
+            customerOptions={customerOptions}
+            onClose={handleCloseEditAppointment}
+            onSubmit={handleUpdateAppointment}
+            isSubmitting={createAppointmentMutation.isPending}
+            submitErrMessage={
+              createAppointmentMutation.isError ? "Tạo mới thất bại" : ""
+            }
+        />
+        )
+      }
     </main>
   );
 };

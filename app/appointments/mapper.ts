@@ -1,4 +1,4 @@
-import { Appointment, AppointmentDTO } from "./type";
+import { Appointment, AppointmentDTO, UpdateAppointmentFormValues } from "./type";
 
 export const mapAppointmentDTOToAppointment = (dto: AppointmentDTO): Appointment => {
   return {
@@ -9,4 +9,15 @@ export const mapAppointmentDTOToAppointment = (dto: AppointmentDTO): Appointment
     note: dto.note,
     status: dto.status,
   };
+}
+
+export const mapAppointmentToUpdateFormValues = (appointment: Appointment): UpdateAppointmentFormValues => {
+  return {
+    title: appointment.title,
+    customerName: appointment.customerName,
+    fee: appointment.fee,
+    status: appointment.status,
+    note: appointment.note ?? "",
+  };
+
 }
