@@ -6,11 +6,12 @@ import { mapToOptions } from "../../generic";
 import { getCustomerLabel } from "../../helpers";
 import FormSelectField from "../fields/FormSelectField";
 import FormStatusSelectField from "../fields/FormStatusSelectField";
+import OptionSelectField from "../fields/OptionSelectField";
 
 interface AppointmentFilterFormProps {
   initialValues: AppointmentFilterFormValues;
   onSubmit: (values: AppointmentFilterFormValues) => void;
-  onClear : () => void
+  onClear: () => void;
 }
 const statusOptions: { value: string; label: string }[] = [
   { value: "ALL", label: "ALL status" },
@@ -47,11 +48,11 @@ const AppointmentFilterForm = (props: AppointmentFilterFormProps) => {
       label: item.label,
     })),
   ];
-  
-  const handleReset = ()=>{
-    reset()
-    props.onClear?.()
-  }
+
+  const handleReset = () => {
+    reset();
+    props.onClear?.();
+  };
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
@@ -75,13 +76,20 @@ const AppointmentFilterForm = (props: AppointmentFilterFormProps) => {
         name="status"
         control={methods.control}
         render={({ field, fieldState }) => (
-          <FormStatusSelectField
+          <OptionSelectField
             label="Status"
             value={field.value}
             options={statusOptions}
             onChange={field.onChange}
             error={fieldState.error?.message}
           />
+          // <FormStatusSelectField
+          //   label="Status"
+          //   value={field.value}
+          //   options={statusOptions}
+          //   onChange={field.onChange}
+          //   error={fieldState.error?.message}
+          // />
         )}
       />
       <button
@@ -90,12 +98,12 @@ const AppointmentFilterForm = (props: AppointmentFilterFormProps) => {
       >
         Filter
       </button>
-        <button
-         className="inline-flex h-11 items-center justify-center rounded-2xl border border-slate-300 bg-white px-4 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50"
+      <button
+        className="inline-flex h-11 items-center justify-center rounded-2xl border border-slate-300 bg-white px-4 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50"
         onClick={handleReset}
-        >
-          Reset
-        </button>
+      >
+        Reset
+      </button>
     </form>
   );
 };

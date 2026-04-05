@@ -20,12 +20,26 @@ export const getValueByKey = <T, K extends keyof T>(obj: T, key: K): T[K] => {
   return obj[key];
 };
 
-export const mapToOptions = <T>(
+// export const mapToOptions = <T>(
+//   arr: T[],
+//   getLabel: (item: T) => string,
+//   getValue: (item: T) => string,
+// ): { value: string; label: string }[] =>
+//   arr.map((item) => ({ value: getValue(item), label: getLabel(item) }));
+type Option<TValue = string> = {
+  label: string;
+  value: TValue;
+};
+export const mapToOptions = <T, Tvalue = string | number>(
   arr: T[],
   getLabel: (item: T) => string,
-  getValue: (item: T) => string,
-): { value: string; label: string }[] =>
-  arr.map((item) => ({ value: getValue(item), label: getLabel(item) }));
+  getValue: (item: T) => Tvalue,
+): Option<Tvalue>[] => {
+  return arr.map((item) => ({ 
+    label: getLabel(item),
+    value: getValue(item) 
+  }));
+};
 
 export const groupBy = <T, K extends string>(
   arr: T[],
