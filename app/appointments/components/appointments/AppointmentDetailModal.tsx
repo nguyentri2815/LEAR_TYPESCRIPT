@@ -1,20 +1,23 @@
-import React from 'react'
-import { Appointment } from '../../type';
+import React from "react";
+import { Appointment } from "../../type";
 import Card from "../ui/Card";
+import { useAppointmentDetailQuery } from "../../hooks/useAppointmentDetailQuery";
+import EmptyState from "../ui/EmptyState";
 
 interface AppointmentDetailModalProps {
-    // Define any props you need here
-    isOpen: boolean;
-    onClose: () => void;
-    appointment: Appointment | null | undefined;
+  // Define any props you need here
+  isOpen: boolean;
+  onClose: () => void;
+  appointmentId: string;
 }
 
 const AppointmentDetailModal = (props: AppointmentDetailModalProps) => {
-  const { isOpen, onClose, appointment } = props;
+  const { isOpen, onClose, appointmentId } = props;
+  const detailQuery = useAppointmentDetailQuery(isOpen ? appointmentId : "");
 
-  if (!isOpen || !appointment) return null;
+  if (!isOpen || !detailQuery.data) return null;
 
-  const { id, title, customerName, fee, status, note } = appointment;
+  const { id, title, customerName, fee, status, note } = detailQuery.data;
 
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-sm">
@@ -36,6 +39,16 @@ const AppointmentDetailModal = (props: AppointmentDetailModalProps) => {
               x
             </button>
           </div>
+          <div>
+            {detailQuery.isPending && <p>Loading appointment detail...</p>}
+
+            {detailQuery.isError && (
+              <EmptyState
+                title="Failed to load appointment detail"
+                description="Please try again later."
+              />
+            )}
+          </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="rounded-2xl bg-slate-50 p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
@@ -47,7 +60,9 @@ const AppointmentDetailModal = (props: AppointmentDetailModalProps) => {
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
                 Status
               </p>
-              <p className="mt-2 text-sm font-medium text-slate-800">{status}</p>
+              <p className="mt-2 text-sm font-medium text-slate-800">
+                {status}
+              </p>
             </div>
             <div className="rounded-2xl bg-slate-50 p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
@@ -83,7 +98,7 @@ const AppointmentDetailModal = (props: AppointmentDetailModalProps) => {
         </div>
       </Card>
     </div>
-  )
-}
+  );
+};
 
-export default AppointmentDetailModal
+export default AppointmentDetailModal;

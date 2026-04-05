@@ -1,5 +1,7 @@
+import { mapAppointmentDTOToAppointment } from "./mapper";
 import {
   ApiType,
+  Appointment,
   AppointmentDTO,
   CreateAppointmentPayload,
 } from "./type";
@@ -69,5 +71,19 @@ export const deleteAppointment = async (
   return {
     data: appointmentId,
     message: "xóa appointment thành công",
+  };
+};
+
+export const getDetailAppointment = async (
+  id: string,
+): Promise<ApiType<Appointment>> => {
+  await wait(3000);
+  const dto = appointmentStore.find((item) => item.id === id);
+  if(!dto){
+    throw new Error('Appointment not found')
+  }
+  return  {
+    data: mapAppointmentDTOToAppointment(dto),
+    message: "Fetched appointment detail successfully",
   };
 };

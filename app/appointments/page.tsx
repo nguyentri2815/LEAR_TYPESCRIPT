@@ -72,12 +72,14 @@ const AppointmentPage = () => {
     handleGetFirstAppointment,
     handleSelectedAppointment,
     handleClearAppointment,
+    selectedId,
+    setSelectedId
   } = useAppointmentState({
     appointmentList: appointmentListWithCustomerLabel,
   });
 
   const handleOpenAppointmentDetail = (item: Appointment) => {
-    handleSelectedAppointment(item);
+    setSelectedId(item.id);
     detailModal.open();
   };
 
@@ -289,7 +291,7 @@ const AppointmentPage = () => {
       <AppointmentDetailModal
         isOpen={detailModal.isOpen}
         onClose={handleCloseAppointmentDetail}
-        appointment={selectedAppointment}
+        appointmentId={selectedId}
       />
       {createModal.isOpen && (
         <CreateAppointmentModal
