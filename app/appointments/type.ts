@@ -46,6 +46,8 @@ export type ApiType<T> = {
 
 export interface AppointmentFilterFormValues {
   keyword: string;
+  status: AppointmentStatus | 'ALL',
+  customerId : string | 'ALL'
 }
 
 export interface UpdateAppointmentFormValues  {

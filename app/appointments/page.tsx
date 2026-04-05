@@ -10,7 +10,7 @@ import {
 import { groupBy, mapToOptions, toRecord } from "./generic";
 import type { Appointment, Customer } from "./type";
 import AppointmentDetailModal from "./components/appointments/AppointmentDetailModal";
-import AppointmentFilterFormValues from "./components/appointments/AppointmentFilterFormValues";
+import AppointmentFilterForm from "./components/appointments/AppointmentFilterFormValues";
 import AppointmentTable from "./components/appointments/AppointmentTable";
 import CreateAppointmentModal from "./components/appointments/CreateAppointmentModalV2";
 import ActionButton from "./components/ui/ActionButton";
@@ -26,7 +26,7 @@ import {
   useDeleteAppointmentMutation,
 } from "./hooks/useAppointmentMudation";
 import { CreateAppointmentSchemaValues } from "./schema";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import EditAppointmentModal from "./components/appointments/EditAppointmentModal";
 import DeleteAppointmentConfirmModal from "./components/appointments/DeleteAppointmentConfirmModal";
 
@@ -79,6 +79,10 @@ const AppointmentPage = () => {
     setSelectedId,
     deletingAppointment,
     setDeletingAppointment,
+
+    filters,
+    handleFilterSubmit,
+    handleFilterClear,
   } = useAppointmentState({
     appointmentList: appointmentListWithCustomerLabel,
   });
@@ -152,6 +156,26 @@ const AppointmentPage = () => {
 
     handleCloseDeleteConfirm();
   };
+
+  const filteredAppointments = useMemo(() => {
+  const normalizedKeyword = filters.keyword.trim().toLowerCase();
+
+  return appointmentListWithCustomerLabel.filter((appointment) => {
+    const matchKeyword =
+      !normalizedKeyword ||
+      appointment.title.toLowerCase().includes(normalizedKeyword) ||
+      appointment.customerName.toLowerCase().includes(normalizedKeyword);
+
+    const matchStatus =
+      filters.status === "ALL" || appointment.status === filters.status;
+
+    const matchCustomer =
+      filters.customerId === "ALL" || appointment.id === filters.customerId;
+
+    return matchKeyword && matchStatus && matchCustomer;
+  });
+}, [appointmentListWithCustomerLabel, filters]);
+
   const renderAppointmentContent = () => {
     switch (appointmentsQuery.status) {
       // case "idle":
@@ -169,7 +193,7 @@ const AppointmentPage = () => {
           />
         );
       case "success":
-        if (appointmentListWithCustomerLabel.length === 0) {
+        if (filteredAppointments.length === 0) {
           return (
             <EmptyState
               title="No appointments found"
@@ -186,7 +210,7 @@ const AppointmentPage = () => {
 
         return (
           <AppointmentTable
-            items={appointmentListWithCustomerLabel}
+            items={filteredAppointments}
             onSelect={handleOpenAppointmentDetail}
             onEdit={handleOpenEditAppointment}
             onDelete={handleOpenDeleteConfirm}
@@ -217,7 +241,7 @@ const AppointmentPage = () => {
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">
                   Total
                 </p>
-                <p className="mt-2 text-2xl font-semibold">
+                <p className="mt-2 text-2xl font-semibold text-black">
                   {totalAppointments}
                 </p>
               </Card>
@@ -263,9 +287,12 @@ const AppointmentPage = () => {
                 </>
               }
             >
-              <AppointmentFilterFormValues
-                onSubmit={() => {
+              <AppointmentFilterForm
+                initialValues={filters}
+                onClear={handleFilterClear}
+                onSubmit={(formValues) => {
                   // Handle filter submission logic here
+                  handleFilterSubmit(formValues)
                 }}
               />
             </ActionBar>
@@ -342,7 +369,8 @@ const AppointmentPage = () => {
         onConfirm={handleDeleteConfirm}
         submitError={
           deleteAppointmentMutation.isError
-            ? deleteAppointmentMutation.error.message || 'Fail to delete appointment'
+            ? deleteAppointmentMutation.error.message ||
+              "Fail to delete appointment"
             : ""
         }
       />
