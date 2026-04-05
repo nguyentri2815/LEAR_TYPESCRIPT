@@ -13,6 +13,7 @@ export const useAppointmentState = ({
   const [selectedAppointment, setSelectedAppointment] =
     useState<Appointment | null | undefined>(null);
   const [selectedId, setSelectedId] = useState<string>('');
+  const [deletingAppointment, setDeletingAppointment] = useState<Appointment | null>(null);
 
   const onChangeKeyword = (e: React.ChangeEvent<HTMLInputElement>) => {
     console.log("Keyword changed:", e.target.value);
@@ -42,5 +43,7 @@ export const useAppointmentState = ({
     handleGetFirstAppointment,
     selectedId,
     setSelectedId,
+    deletingAppointment, 
+    setDeletingAppointment
   };
 };

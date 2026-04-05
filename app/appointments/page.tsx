@@ -28,13 +28,16 @@ import {
 import { CreateAppointmentSchemaValues } from "./schema";
 import { useState } from "react";
 import EditAppointmentModal from "./components/appointments/EditAppointmentModal";
+import DeleteAppointmentConfirmModal from "./components/appointments/DeleteAppointmentConfirmModal";
 
 const AppointmentPage = () => {
   const createModal = useModal(false);
   const detailModal = useModal(false);
   const editModal = useModal(false);
+  const deleteConfirmModal = useModal(false);
 
-  const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null)
+  const [editingAppointment, setEditingAppointment] =
+    useState<Appointment | null>(null);
 
   const appointmentsQuery = useAppointmentsQuery();
   const createAppointmentMutation = useCreateAppointmentMutation();
@@ -73,7 +76,9 @@ const AppointmentPage = () => {
     handleSelectedAppointment,
     handleClearAppointment,
     selectedId,
-    setSelectedId
+    setSelectedId,
+    deletingAppointment,
+    setDeletingAppointment,
   } = useAppointmentState({
     appointmentList: appointmentListWithCustomerLabel,
   });
@@ -114,21 +119,39 @@ const AppointmentPage = () => {
     detailModal.open();
   };
 
-  
-  const handleOpenEditAppointment = (appointment:Appointment) => {
-    console.log('appointment',appointment)
+  const handleOpenEditAppointment = (appointment: Appointment) => {
+    console.log("appointment", appointment);
     setEditingAppointment(appointment);
-    editModal.open()
-  }
+    editModal.open();
+  };
 
-  const handleCloseEditAppointment = () =>{
+  const handleCloseEditAppointment = () => {
     setEditingAppointment(null);
-    editModal.close()
-  }
-  const handleUpdateAppointment = async()=>{
-    handleCloseEditAppointment()
-  }
+    editModal.close();
+  };
+  const handleUpdateAppointment = async () => {
+    handleCloseEditAppointment();
+  };
 
+  const handleOpenDeleteConfirm = (appointment: Appointment): void => {
+    setDeletingAppointment(appointment);
+    deleteConfirmModal.open();
+  };
+  const handleCloseDeleteConfirm = () => {
+    setDeletingAppointment(null);
+    deleteConfirmModal.close();
+  };
+  const handleDeleteConfirm = async () => {
+    if (!deletingAppointment) {
+      return;
+    }
+    //handle onSuccess service state riêng bên trong hook mutation
+    await deleteAppointmentMutation.mutateAsync(deletingAppointment.id);
+    //handle local state riêng tại ui component//....
+    handleClearAppointment();
+
+    handleCloseDeleteConfirm();
+  };
   const renderAppointmentContent = () => {
     switch (appointmentsQuery.status) {
       // case "idle":
@@ -166,12 +189,7 @@ const AppointmentPage = () => {
             items={appointmentListWithCustomerLabel}
             onSelect={handleOpenAppointmentDetail}
             onEdit={handleOpenEditAppointment}
-            onDelete={async(item:Appointment):Promise<void> => {
-              //handle onSuccess service state riêng bên trong hook mutation
-              await deleteAppointmentMutation.mutateAsync(item.id);
-              //handle local state riêng tại ui component//....
-              handleClearAppointment()
-            }}
+            onDelete={handleOpenDeleteConfirm}
           />
         );
       case "error":
@@ -304,20 +322,30 @@ const AppointmentPage = () => {
           }
         />
       )}
-      {
-        editModal.isOpen && (
-          <EditAppointmentModal
-            appointment = {editingAppointment}
-            customerOptions={customerOptions}
-            onClose={handleCloseEditAppointment}
-            onSubmit={handleUpdateAppointment}
-            isSubmitting={createAppointmentMutation.isPending}
-            submitErrMessage={
-              createAppointmentMutation.isError ? "Tạo mới thất bại" : ""
-            }
+      {editModal.isOpen && (
+        <EditAppointmentModal
+          appointment={editingAppointment}
+          customerOptions={customerOptions}
+          onClose={handleCloseEditAppointment}
+          onSubmit={handleUpdateAppointment}
+          isSubmitting={createAppointmentMutation.isPending}
+          submitErrMessage={
+            createAppointmentMutation.isError ? "Tạo mới thất bại" : ""
+          }
         />
-        )
-      }
+      )}
+      <DeleteAppointmentConfirmModal
+        isOpen={deleteConfirmModal.isOpen}
+        deletingAppointment={deletingAppointment}
+        isPending={deleteAppointmentMutation.isPending}
+        onClose={handleCloseDeleteConfirm}
+        onConfirm={handleDeleteConfirm}
+        submitError={
+          deleteAppointmentMutation.isError
+            ? deleteAppointmentMutation.error.message || 'Fail to delete appointment'
+            : ""
+        }
+      />
     </main>
   );
 };

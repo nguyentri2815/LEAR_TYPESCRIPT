@@ -76,7 +76,7 @@ const AppointmentTable = (props: AppointmentTableProps) => {
                   onClick={() => onDelete(item)}
                   className="inline-flex h-10 items-center justify-center rounded-2xl border border-slate-300 bg-white px-4 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50"
                 >
-                  Clear
+                  Delete
                 </button>
               </div>
             </div>
