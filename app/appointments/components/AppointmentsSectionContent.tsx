@@ -4,6 +4,7 @@ import type { Appointment } from "../type";
 import AppointmentTable from "./appointments/AppointmentTable";
 import ActionButton from "./ui/ActionButton";
 import EmptyState from "./ui/EmptyState";
+import { ErrorState } from "./ui/ErrorState";
 import { useAppointmentsSectionContext } from "./AppointmentsSectionContext";
 import { useCallback } from "react";
 
@@ -12,6 +13,7 @@ export const AppointmentsSectionContent = () => {
     data: appointmentData,
     appointments,
     modals,
+    handlers,
   } = useAppointmentsSectionContext();
 
   const handleOpenAppointmentDetail = useCallback(
@@ -38,35 +40,37 @@ export const AppointmentsSectionContent = () => {
     [modals]
   );
 
-  // Loading state
+  // Trạng thái đang tải
   if (appointments.isLoading) {
     return (
       <EmptyState
-        title="Loading appointments"
-        description="The appointment board is preparing the latest data for you."
+        title="Đang tải cuộc hẹn"
+        description="Bảng cuộc hẹn đang chuẩn bị dữ liệu mới nhất cho bạn."
       />
     );
   }
 
-  // Error state
+  // Trạng thái lỗi - sử dụng thành phần ErrorState với hỗ trợ thử lại
   if (appointments.isError) {
     return (
-      <EmptyState
-        title="Unable to load appointments"
-        description={appointments.error || "An error occurred"}
+      <ErrorState
+        title="Không thể tải cuộc hẹn"
+        error={appointments.errorMessage || "Không thể tải các cuộc hẹn"}
+        onRetry={appointments.isErrorRetryable ? handlers.refetch : undefined}
+        showDetails={process.env.NODE_ENV === "development"}
       />
     );
   }
 
-  // Empty state
+  // Trạng thái trống
   if (appointmentData.filteredAppointments.length === 0) {
     return (
       <EmptyState
-        title="No appointments found"
-        description="Try another filter or create a new appointment to populate the board."
+        title="Không tìm thấy cuộc hẹn"
+        description="Hãy thử bộ lọc khác hoặc tạo một cuộc hẹn mới để điền vào bảng."
         action={
           <ActionButton
-            label="Create appointment"
+            label="Tạo cuộc hẹn"
             onClick={() => {}}
           />
         }
@@ -74,7 +78,7 @@ export const AppointmentsSectionContent = () => {
     );
   }
 
-  // Success state - render table
+  // Trạng thái thành công - kết xuất bảng
   return (
     <AppointmentTable
       items={appointmentData.filteredAppointments}

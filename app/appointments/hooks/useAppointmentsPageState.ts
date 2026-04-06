@@ -1,4 +1,5 @@
 import type { Appointment, AppointmentFilterFormValues } from "../type";
+import { classifyError } from "../utils/errorClassification";
 import { useCreateAppointmentMutation, useDeleteAppointmentMutation } from "./useAppointmentMudation";
 import { useAppointmentState } from "./useAppointmentState";
 import { useAppointmentsQuery } from "./useAppointmentsDataQuery";
@@ -6,26 +7,26 @@ import { useModalManager } from "./useModalManager";
 import { useAppointmentData } from "./useAppointmentData";
 
 /**
- * Bundles all state, mutations, and data transformations for the Appointments page
- * into a single custom hook to avoid prop drilling
+ * Gộp tất cả trạng thái, đột biến và chuyển đổi dữ liệu cho trang Cuộc Hẹn
+ * thành một hook tùy chỉnh duy nhất để tránh khoan trải props
  */
 export const useAppointmentsPageState = () => {
-  // ========== Queries & Mutations ==========
+  // ========== Truy Vấn & Đột Biến ==========
   const appointmentsQuery = useAppointmentsQuery();
   const createMutation = useCreateAppointmentMutation();
   const deleteMutation = useDeleteAppointmentMutation();
 
-  // ========== State Management ==========
+  // ========== Quản Lý Trạng Thái ==========
   const modals = useModalManager();
   const { filters, handleFilterSubmit, handleFilterClear } = useAppointmentState({
     appointmentList: appointmentsQuery.data ?? [],
   });
 
-  // ========== Data Transformations ==========
+  // ========== Chuyển Đổi Dữ Liệu ==========
   const appointmentList = appointmentsQuery.data ?? [];
   const appointmentData = useAppointmentData(appointmentList, filters);
 
-  // ========== Handlers ==========
+  // ========== Trình Xử Lý ==========
   const handleCreateAppointment = async (formValues: any) => {
     await createMutation.mutateAsync(formValues);
     modals.createModal.close();
@@ -39,24 +40,36 @@ export const useAppointmentsPageState = () => {
     await deleteMutation.mutateAsync(appointmentId);
   };
 
-  const handleRefetch = () => {
-    appointmentsQuery.refetch();
+  const handleRefetch = async () => {
+    try {
+      await appointmentsQuery.refetch();
+    } catch (error) {
+      console.error("Tìm nạp lại thất bại:", error);
+    }
   };
 
-  // ========== Bundled State Object ==========
+  // ========== Phân Loại Lỗi ==========
+  const classifiedError = appointmentsQuery.error
+    ? classifyError(appointmentsQuery.error)
+    : null;
+
+  // ========== Đối Tượng Trạng Thái Được Gộp ==========
   return {
-    // Data
+    // Dữ Liệu
     data: appointmentData,
     filters,
     
-    // Modals
+    // Modal
     modals,
 
-    // Query & Mutation States
+    // Trạng Thái Truy Vấn & Đột Biến
     appointments: {
       isLoading: appointmentsQuery.status === "pending",
       isError: appointmentsQuery.status === "error",
-      error: appointmentsQuery.error?.message,
+      error: appointmentsQuery.error,
+      errorMessage: classifiedError?.userMessage,
+      isErrorRetryable: classifiedError?.isRetryable ?? false,
+      status: appointmentsQuery.status,
     },
     createMutation: {
       isPending: createMutation.isPending,
@@ -69,7 +82,7 @@ export const useAppointmentsPageState = () => {
       error: deleteMutation.error,
     },
 
-    // Handlers
+    // Trình Xử Lý
     handlers: {
       filterSubmit: handleFilterSubmit,
       filterClear: handleFilterClear,

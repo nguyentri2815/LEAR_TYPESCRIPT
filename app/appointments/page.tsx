@@ -1,8 +1,8 @@
 ﻿"use client";
 
 import { useAppointmentsPageState } from "./hooks/useAppointmentsPageState";
-import { AppointmentsSection } from "./components/AppointmentsSection";
 import { CustomersSection } from "./components/CustomersSection";
+import { AppointmentsSection } from "./components/AppointmentsSection";
 
 const AppointmentPage = () => {
   const state = useAppointmentsPageState();
